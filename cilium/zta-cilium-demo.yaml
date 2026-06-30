@@ -1,0 +1,164 @@
+# ============================================================
+# NAMESPACE
+# ============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zta-demo
+  labels:
+    name: zta-demo
+---
+# ============================================================
+# FRONTEND (Web Tier) — Simulates browser-facing service
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: zta-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+      tier: web
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tier: web
+    spec:
+      containers:
+      - name: frontend
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "<h1>FRONTEND - Web Tier</h1>" > /usr/share/nginx/html/index.html
+          nginx -g 'daemon off;'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: zta-demo
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: 80
+---
+# ============================================================
+# BACKEND (API Tier)
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: zta-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+      tier: api
+  template:
+    metadata:
+      labels:
+        app: backend
+        tier: api
+    spec:
+      containers:
+      - name: backend
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          mkdir -p /usr/share/nginx/html/api
+          echo '{"status":"ok","service":"backend-api"}' > /usr/share/nginx/html/api/health
+          nginx -g 'daemon off;'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: zta-demo
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 80
+---
+# ============================================================
+# DATABASE (DB Tier) — No direct access except from backend
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+  namespace: zta-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+      tier: db
+  template:
+    metadata:
+      labels:
+        app: database
+        tier: db
+    spec:
+      containers:
+      - name: database
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "<h1>DATABASE - RESTRICTED ACCESS</h1>" > /usr/share/nginx/html/index.html
+          nginx -g 'daemon off;'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  namespace: zta-demo
+spec:
+  selector:
+    app: database
+  ports:
+  - port: 80
+---
+# ============================================================
+# ATTACKER POD — Simulates a compromised pod / lateral movement
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: attacker
+  namespace: zta-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: attacker
+      tier: untrusted
+  template:
+    metadata:
+      labels:
+        app: attacker
+        tier: untrusted
+    spec:
+      containers:
+      - name: attacker
+        image: alpine:latest
+        command: ["sleep", "infinity"]
+
+
+

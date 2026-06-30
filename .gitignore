@@ -1,0 +1,28 @@
+# Ignore environment files containing secret keys and credentials
+.env
+*.env
+
+# Ignore cryptographic keys and certificates
+certs/
+*.crt
+*.key
+*.pem
+
+# Ignore runtime data, database state, and sprawling log outputs
+logs/
+*.log
+opt/zeek/spool/
+opt/zeek/logs/
+
+# Ignore system and diagnostic artifacts
+.DS_Store
+Thumbs.db
+*.bck
+*.err
+*.bak
+*claude*
+*bcl*
+*passwd*
+*bck*
+*passwd*
+*paswd*

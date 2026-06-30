@@ -1,0 +1,125 @@
+# ============================================================
+# POLICY 1: Default Deny ALL ingress in zta-demo
+# This is the ZTA default — nothing is trusted by default
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: zta-demo
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# ============================================================
+# POLICY 2: Allow DNS for all pods (required for service discovery)
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: zta-demo
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+---
+# ============================================================
+# POLICY 3: Frontend can ONLY reach Backend (not DB, not attacker)
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-to-backend-only
+  namespace: zta-demo
+spec:
+  podSelector:
+    matchLabels:
+      tier: web
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: api
+    ports:
+    - protocol: TCP
+      port: 80
+---
+# ============================================================
+# POLICY 4: Backend accepts traffic ONLY from frontend
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-ingress-from-frontend-only
+  namespace: zta-demo
+spec:
+  podSelector:
+    matchLabels:
+      tier: api
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: web
+    ports:
+    - protocol: TCP
+      port: 80
+---
+# ============================================================
+# POLICY 5: Backend can ONLY reach Database
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-to-database-only
+  namespace: zta-demo
+spec:
+  podSelector:
+    matchLabels:
+      tier: api
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: db
+    ports:
+    - protocol: TCP
+      port: 80
+---
+# ============================================================
+# POLICY 6: Database accepts ONLY from backend (DB hardening)
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: database-ingress-from-backend-only
+  namespace: zta-demo
+spec:
+  podSelector:
+    matchLabels:
+      tier: db
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: api
+    ports:
+    - protocol: TCP
+      port: 80

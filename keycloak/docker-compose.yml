@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    networks:
+      - keycloak-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: keycloak
+    command: start-dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres/keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HTTP_PORT: 8080
+      KC_HTTPS_PORT: 8443
+      KC_HOSTNAME: ${DOMAIN_NAME}
+      KC_HOSTNAME_ADMIN: ${DOMAIN_NAME}
+      KC_PROXY: edge
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HOSTNAME_STRICT_BACKCHANNEL: 'false'
+      KC_HTTP_ENABLED: 'true'
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - /etc/caddy/certs:/opt/keycloak/certs:ro
+    networks:
+      - keycloak-network
+
+volumes:
+  keycloak_db_data:
+
+networks:
+  keycloak-network:
+    driver: bridge

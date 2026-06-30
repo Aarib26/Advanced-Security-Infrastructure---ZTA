@@ -1,0 +1,27 @@
+address: ":2080"
+log_level: debug
+xff_num_trusted_hops: 1
+
+cookie_secure: true
+cookie_same_site: lax
+
+idp_provider: oidc
+idp_client_id: pomerium
+skip_identity_provider_tls_verification: true
+idp_scopes:
+  - openid
+  - profile
+  - email
+  - groups
+
+policy:
+  - from: https://labubuntu2.tail65943a.ts.net
+    to: http://simple-app:80
+    prefix: /zta-app
+    allow_any_authenticated_user: true
+  - from: https://labubuntu2.tail65943a.ts.net
+    prefix: /zta-admin
+    to: http://admin-app:80
+    allowed_idp_claims:
+      groups:
+        - admins

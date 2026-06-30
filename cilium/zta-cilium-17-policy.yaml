@@ -1,0 +1,25 @@
+# Cilium L7 HTTP policy — only allow GET /api/* from frontend to backend
+# This demonstrates ZTA at the application layer
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: backend-l7-http-policy
+  namespace: zta-demo
+spec:
+  endpointSelector: 
+    matchLabels:
+      tier: api
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        tier: web
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+      rules:
+        http:
+        - method: "GET"
+          path: "/api/.*"
+        - method: "GET"
+          path: "/"

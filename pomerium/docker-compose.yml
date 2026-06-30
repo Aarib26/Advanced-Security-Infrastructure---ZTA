@@ -1,0 +1,47 @@
+services:
+  pomerium:
+    image: pomerium/pomerium:v0.26.1
+    container_name: pomerium
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8444:2080"
+    environment:
+      - SHARED_SECRET=${POMERIUM_SHARED_SECRET}
+      - COOKIE_SECRET=${POMERIUM_COOKIE_SECRET}
+      - IDP_CLIENT_SECRET=${POMERIUM_IDP_CLIENT_SECRET}
+      - COOKIE_DOMAIN=${DOMAIN_NAME}
+      - IDP_PROVIDER_URL=https://${DOMAIN_NAME}/realms/zta
+      - AUTHENTICATE_SERVICE_URL=https://${DOMAIN_NAME}
+    volumes:
+      - ./config.yaml:/pomerium/config.yaml:ro
+      - /etc/caddy/certs/keycloak.crt:/pomerium/cert.pem:ro
+      - /etc/caddy/certs/keycloak.key:/pomerium/key.pem:ro
+    extra_hosts:
+      - "${DOMAIN_NAME}:host-gateway"
+    networks:
+      - pomerium-network
+      - keycloak-network
+    depends_on:
+      - simple-app
+      - admin-app
+
+  simple-app:
+    image: nginx:alpine
+    container_name: simple-app
+    volumes:
+      - ./demo-app/html:/usr/share/nginx/html:ro
+    networks:
+      - pomerium-network
+
+  admin-app:
+    image: nginx:alpine
+    container_name: admin-app
+    networks:
+      - pomerium-network
+
+networks:
+  pomerium-network:
+    driver: bridge
+  keycloak-network:
+    external: true
+    name: keycloak_keycloak-network
