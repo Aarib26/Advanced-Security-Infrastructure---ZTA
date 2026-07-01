@@ -1,4 +1,4 @@
-labubuntu2.tail65943a.ts.net {
+your-tailscale-hostname.ts.net {
         handle /admin* {
                 reverse_proxy localhost:8081
         }

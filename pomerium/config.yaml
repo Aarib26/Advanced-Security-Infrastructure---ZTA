@@ -15,11 +15,11 @@ idp_scopes:
   - groups
 
 policy:
-  - from: https://labubuntu2.tail65943a.ts.net
+  - from: https://your-tailscale-hostname.ts.net
     to: http://simple-app:80
     prefix: /zta-app
     allow_any_authenticated_user: true
-  - from: https://labubuntu2.tail65943a.ts.net
+  - from: https://your-tailscale-hostname.ts.net
     prefix: /zta-admin
     to: http://admin-app:80
     allowed_idp_claims:

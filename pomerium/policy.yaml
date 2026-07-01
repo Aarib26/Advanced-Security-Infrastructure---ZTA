@@ -1,13 +1,13 @@
 routes:
-  - from: https://app.labubuntu2.tail65943a.ts.net
+  - from: https://app.your-tailscale-hostname.ts.net
     to: http://simple-app:80
     allow_any_authenticated_user: true
 
-  - from: https://admin.labubuntu2.tail65943a.ts.net
+  - from: https://admin.your-tailscale-hostname.ts.net
     to: http://admin-app:80
     allowed_groups:
       - admins
 
-  - from: https://auth.labubuntu2.tail65943a.ts.net
+  - from: https://auth.your-tailscale-hostname.ts.net
     to: http://simple-app:80
     allow_any_authenticated_user: true
