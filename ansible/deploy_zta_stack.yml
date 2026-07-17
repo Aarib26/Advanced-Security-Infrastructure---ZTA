@@ -1,0 +1,183 @@
+---
+- name: Deploy ZTA Detection Stack (SOC Automation Layer)
+  hosts: zta_nodes
+  become: yes
+
+  vars:
+    zta_base_dir: /home/zta_user/oral_arch
+
+  tasks:
+
+    #################################################################
+    # SURICATA IDS
+    #################################################################
+
+    - name: Ensure Suricata is running
+      systemd:
+        name: suricata
+        state: started
+        enabled: yes
+
+    - name: Update Suricata rules (threat intel refresh)
+      command: suricata-update
+      register: suricata_update
+      changed_when: "'Updated' in suricata_update.stdout or suricata_update.rc == 0"
+      failed_when: false
+
+    - name: Restart Suricata after rule update
+      systemd:
+        name: suricata
+        state: restarted
+
+    #################################################################
+    # ZEEK NSM
+    #################################################################
+
+    - name: Ensure Zeek is deployed
+      command: /opt/zeek/bin/zeekctl deploy
+      register: zeek_deploy
+      changed_when: true
+      failed_when: false
+
+    - name: Verify Zeek processes
+      shell: pgrep -f zeek || true
+      register: zeek_proc
+      changed_when: false
+
+    - name: Show Zeek status
+      debug:
+        var: zeek_proc.stdout_lines
+
+    #################################################################
+    # FILEBEAT
+    #################################################################
+
+    - name: Ensure Filebeat is running
+      systemd:
+        name: filebeat
+        state: started
+        enabled: yes
+
+    #################################################################
+    # ELK STACK
+    #################################################################
+
+    - name: Deploy ELK Stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ zta_base_dir }}/elk"
+        state: present
+
+    #################################################################
+    # KEYCLOAK IAM
+    #################################################################
+
+    - name: Deploy Keycloak Stack (IAM layer)
+      community.docker.docker_compose_v2:
+        project_src: "{{ zta_base_dir }}/keycloak"
+        state: present
+
+    #################################################################
+    # POMERIUM ZERO TRUST ACCESS
+    #################################################################
+
+    - name: Deploy Pomerium Stack (Zero Trust Proxy)
+      community.docker.docker_compose_v2:
+        project_src: "{{ zta_base_dir }}/pomerium"
+        state: present
+
+    #################################################################
+    # CILIUM NETWORK POLICIES
+    #################################################################
+
+    - name: Apply Cilium network policies
+      command: kubectl apply -f {{ zta_base_dir }}/cilium/
+      environment:
+        KUBECONFIG: /home/zta_user/.kube/config
+      register: cilium_apply
+      changed_when: "'created' in cilium_apply.stdout or 'configured' in cilium_apply.stdout"
+      failed_when: false
+
+    - name: Check Kubernetes pod status
+      command: kubectl get pods -A
+      environment:
+        KUBECONFIG: /home/zta_user/.kube/config
+      register: k8s_pods
+      changed_when: false
+      failed_when: false
+
+    - name: Display cluster state
+      debug:
+        var: k8s_pods.stdout_lines
+
+#####################################################################
+# SECURITY HARDENING LAYER
+#####################################################################
+
+- name: ZTA Security Hardening Layer
+  hosts: zta_nodes
+  become: yes
+
+  tasks:
+
+    #################################################################
+    # WAIT BEFORE FIREWALL OPERATIONS
+    #################################################################
+
+    - name: Wait for Docker/Cilium iptables operations to settle
+      pause:
+        seconds: 20
+
+    #################################################################
+    # UFW FIREWALL
+    #################################################################
+
+    - name: Allow Tailscale interface traffic
+      shell: ufw allow in on tailscale0
+      register: ufw_tailscale
+      retries: 10
+      delay: 5
+      until: ufw_tailscale.rc == 0
+      changed_when: true
+
+    - name: Set UFW default deny incoming
+      shell: ufw default deny incoming
+      register: ufw_default_deny
+      retries: 10
+      delay: 5
+      until: ufw_default_deny.rc == 0
+      changed_when: true
+
+    - name: Enable UFW firewall
+      shell: ufw --force enable
+      register: ufw_enable
+      retries: 10
+      delay: 5
+      until: ufw_enable.rc == 0
+      changed_when: true
+
+    - name: Show UFW status
+      command: ufw status verbose
+      register: ufw_status
+      changed_when: false
+
+    - name: Display UFW status
+      debug:
+        var: ufw_status.stdout_lines
+
+    #################################################################
+    # AUDITD
+    #################################################################
+
+    - name: Ensure auditd is installed
+      apt:
+        name:
+          - auditd
+          - audispd-plugins
+        state: present
+        update_cache: yes
+
+    - name: Ensure auditd is running
+      systemd:
+        name: auditd
+        state: started
+        enabled: yes

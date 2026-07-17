@@ -1,0 +1,104 @@
+# 1. Default Deny All (Ingress & Egress)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: zta-demo
+spec:
+  endpointSelector: {}
+  ingressDeny:
+  - {}
+  egressDeny:
+  - {}
+---
+# 2. Allow DNS Egress to CoreDNS
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: zta-demo
+spec:
+  endpointSelector: {}
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: kube-system
+        k8s:k8s-app: kube-dns
+    toPorts:
+    - ports:
+      - port: "53"
+        protocol: ANY
+---
+# 3. Frontend -> Backend (Egress + Ingress L4 Only)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: frontend-to-backend
+  namespace: zta-demo
+spec:
+  endpointSelector:
+    matchLabels:
+      tier: api
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        tier: web
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: frontend-egress-to-backend
+  namespace: zta-demo
+spec:
+  endpointSelector:
+    matchLabels:
+      tier: web
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        tier: api
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+---
+# 4. Backend -> Database (Egress + Ingress L4 Only)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: backend-to-database
+  namespace: zta-demo
+spec:
+  endpointSelector:
+    matchLabels:
+      tier: db
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        tier: api
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: backend-egress-to-database
+  namespace: zta-demo
+spec:
+  endpointSelector:
+    matchLabels:
+      tier: api
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        tier: db
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP

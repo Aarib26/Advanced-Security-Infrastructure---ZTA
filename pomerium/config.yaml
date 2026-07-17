@@ -1,0 +1,30 @@
+address: ":2080"
+log_level: debug
+xff_num_trusted_hops: 1
+
+cookie_same_site: lax
+cookie_domain: labubuntu2.tail65943a.ts.net
+
+idp_provider: oidc
+idp_provider_url: https://labubuntu2.tail65943a.ts.net/realms/zta
+idp_client_id: pomerium
+idp_scopes:
+  - openid
+  - profile
+  - email
+  - offline_access
+
+policy:
+  - from: https://labubuntu2.tail65943a.ts.net
+    to: http://localhost:30080
+    prefix: /zta-app
+    prefix_rewrite: /
+    allow_any_authenticated_user: true
+    preserve_host_header: true
+  - from: https://labubuntu2.tail65943a.ts.net
+    prefix: /zta-admin
+    to: http://localhost:8082
+    allowed_idp_claims:
+      groups:
+        - admins
+    preserve_host_header: true
