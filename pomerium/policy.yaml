@@ -1,0 +1,13 @@
+routes:
+  - from: https://app.your-tailscale-hostname.ts.net
+    to: http://simple-app:80
+    allow_any_authenticated_user: true
+
+  - from: https://admin.your-tailscale-hostname.ts.net
+    to: http://admin-app:80
+    allowed_groups:
+      - admins
+
+  - from: https://auth.your-tailscale-hostname.ts.net
+    to: http://simple-app:80
+    allow_any_authenticated_user: true

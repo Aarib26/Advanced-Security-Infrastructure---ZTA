@@ -1,0 +1,51 @@
+your-tailscale-hostname.ts.net {
+        handle /admin* {
+                reverse_proxy localhost:8081
+        }
+        handle /realms* {
+                reverse_proxy localhost:8081
+        }
+        handle /resources* {
+                reverse_proxy localhost:8081
+        }
+        handle /js* {
+                reverse_proxy localhost:8081
+        }
+        handle /.pomerium* {
+                reverse_proxy localhost:8444 {
+                        transport http {
+                                tls_insecure_skip_verify
+                        }
+                }
+        }
+        handle /kibana* {
+                reverse_proxy localhost:5601
+        }
+
+        handle /oauth2/callback* {
+                reverse_proxy localhost:8444 {
+                        transport http {
+                                tls_insecure_skip_verify
+                        }
+                }
+        }
+        handle /zta-app* {
+                reverse_proxy localhost:8444 {
+                        transport http {
+                                tls_insecure_skip_verify
+                        }
+                }
+        }
+        handle /zta-admin* {
+                reverse_proxy localhost:8444 {
+                        transport http {
+                                tls_insecure_skip_verify
+                        }
+                }
+        }
+        handle {
+                reverse_proxy localhost:8081
+        }
+
+        tls /etc/caddy/certs/keycloak.crt /etc/caddy/certs/keycloak.key
+}
