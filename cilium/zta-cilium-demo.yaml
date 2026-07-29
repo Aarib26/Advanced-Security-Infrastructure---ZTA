@@ -30,14 +30,10 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: nginx:alpine
+        image: zta-frontend-identity:latest
+        imagePullPolicy: Never
         ports:
-        - containerPort: 80
-        command: ["/bin/sh", "-c"]
-        args:
-        - |
-          echo "<h1>FRONTEND - Web Tier</h1>" > /usr/share/nginx/html/index.html
-          nginx -g 'daemon off;'
+        - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
@@ -45,10 +41,13 @@ metadata:
   name: frontend
   namespace: zta-demo
 spec:
+  type: NodePort
   selector:
     app: frontend
   ports:
   - port: 80
+    targetPort: 8080
+    nodePort: 30080
 ---
 # ============================================================
 # BACKEND (API Tier)

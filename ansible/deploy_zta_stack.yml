@@ -4,7 +4,7 @@
   become: yes
 
   vars:
-    zta_base_dir: /home/zta_user/oral_arch
+    zta_base_dir: /home/aak/oral_arch
 
   tasks:
 
@@ -92,7 +92,7 @@
     - name: Apply Cilium network policies
       command: kubectl apply -f {{ zta_base_dir }}/cilium/
       environment:
-        KUBECONFIG: /home/zta_user/.kube/config
+        KUBECONFIG: /home/aak/.kube/config
       register: cilium_apply
       changed_when: "'created' in cilium_apply.stdout or 'configured' in cilium_apply.stdout"
       failed_when: false
@@ -100,7 +100,7 @@
     - name: Check Kubernetes pod status
       command: kubectl get pods -A
       environment:
-        KUBECONFIG: /home/zta_user/.kube/config
+        KUBECONFIG: /home/aak/.kube/config
       register: k8s_pods
       changed_when: false
       failed_when: false
