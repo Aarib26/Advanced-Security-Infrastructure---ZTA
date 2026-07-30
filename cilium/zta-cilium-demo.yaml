@@ -9,7 +9,9 @@ metadata:
     name: zta-demo
 ---
 # ============================================================
-# FRONTEND (Web Tier) — Simulates browser-facing service
+# FRONTEND (Web Tier) — Flask identity app, shows Pomerium-forwarded
+# Email/Sub/Groups headers. Built from ../zta-identity-app/, imported
+# into k3s containerd via `k3s ctr images import` (no external registry).
 # ============================================================
 apiVersion: apps/v1
 kind: Deployment
@@ -30,10 +32,11 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: zta-frontend-identity:latest
+        image: docker.io/library/zta-frontend-identity:latest
         imagePullPolicy: Never
         ports:
         - containerPort: 8080
+          protocol: TCP
 ---
 apiVersion: v1
 kind: Service
@@ -48,6 +51,7 @@ spec:
   - port: 80
     targetPort: 8080
     nodePort: 30080
+    protocol: TCP
 ---
 # ============================================================
 # BACKEND (API Tier)
