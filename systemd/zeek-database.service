@@ -1,0 +1,12 @@
+[Unit]
+Description=Zeek monitoring - database pod interface
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/zeek/bin/zeek -i lxc4f8b6d3327c9 local
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

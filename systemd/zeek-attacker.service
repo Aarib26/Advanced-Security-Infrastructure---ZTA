@@ -1,0 +1,12 @@
+[Unit]
+Description=Zeek monitoring - attacker pod interface
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/zeek/bin/zeek -i lxcf40932cb5575 local
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
