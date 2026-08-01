@@ -1,0 +1,33 @@
+filebeat.inputs:
+  - type: filestream
+    id: suricata-eve
+    enabled: true
+    paths:
+      - /var/log/suricata/eve.json
+    fields:
+      log_type: suricata
+    fields_under_root: false
+    parsers:
+      - ndjson:
+          keys_under_root: false
+          add_error_key: true
+
+  - type: filestream
+    id: zeek-logs
+    enabled: true
+    paths:
+      - /opt/zeek/logs/current/conn.log
+      - /opt/zeek/logs/current/dns.log
+      - /opt/zeek/logs/current/http.log
+      - /opt/zeek/logs/current/notice.log
+      - /opt/zeek/logs/current/weird.log
+    fields:
+      log_type: zeek
+    fields_under_root: false
+
+output.logstash:
+  hosts: ["localhost:5044"]
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
