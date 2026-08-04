@@ -1,0 +1,109 @@
+---
+# ZTA Automated Response: Release IP (undo block_ip_cilium.yml)
+#
+# Manual-intervention step. A human reads ~/oral_arch/zta-response-actions.log,
+# decides the block was correct to lift, and runs this against the same
+# target_ip that was blocked.
+#
+# Invoked as: ansible-playbook release_ip_cilium.yml -e target_ip=<ip> -e operator=<name>
+#
+# Mirrors block_ip_cilium.yml's dynamic design exactly: no hardcoded
+# KUBECONFIG/namespace/context, works against whatever cluster context is
+# currently active.
+
+- name: ZTA Response — Release IP (undo isolation)
+  hosts: zta_nodes
+  become: no
+  gather_facts: no
+
+  vars:
+    zta_namespace: "zta-demo"
+    kube_context: ""
+    kubeconfig_path: "{{ lookup('env', 'KUBECONFIG') | default(lookup('env', 'HOME') + '/.kube/config', true) }}"
+    quarantine_label: "zta-quarantine"
+    policy_name_prefix: "zta-block"
+
+  tasks:
+    - name: Fail fast if target_ip was not supplied
+      fail:
+        msg: "target_ip is required: ansible-playbook release_ip_cilium.yml -e target_ip=<ip> -e operator=<name>"
+      when: target_ip is not defined or target_ip | length == 0
+
+    - name: Fail fast if operator was not supplied (release must be attributable)
+      fail:
+        msg: "operator is required — who is authorizing this release: -e operator=<name>"
+      when: operator is not defined or operator | length == 0
+
+    - name: Build the same filesystem-safe policy name block_ip_cilium.yml used
+      set_fact:
+        safe_ip_slug: "{{ target_ip | regex_replace('[^0-9a-zA-Z]', '-') }}"
+
+    - name: Check whether the isolation policy exists
+      command: >
+        kubectl get ciliumnetworkpolicy {{ policy_name_prefix }}-{{ safe_ip_slug }}
+        -n {{ zta_namespace }}
+        {{ '--context=' + kube_context if kube_context | length > 0 else '' }}
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      register: existing_policy
+      changed_when: false
+      failed_when: false
+
+    - name: Report nothing to release (no-op)
+      debug:
+        msg: "No isolation policy found for {{ target_ip }} (policy {{ policy_name_prefix }}-{{ safe_ip_slug }}) — nothing to release"
+      when: existing_policy.rc != 0
+
+    - name: Delete the isolation policy
+      command: >
+        kubectl delete ciliumnetworkpolicy {{ policy_name_prefix }}-{{ safe_ip_slug }}
+        -n {{ zta_namespace }}
+        {{ '--context=' + kube_context if kube_context | length > 0 else '' }}
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      register: delete_result
+      when: existing_policy.rc == 0
+
+    - name: Find any pod still carrying the quarantine label at this IP
+      shell: >
+        kubectl get pods -n {{ zta_namespace }} -o json
+        {{ '--context=' + kube_context if kube_context | length > 0 else '' }}
+        | python3 -c "
+        import json, sys
+        data = json.load(sys.stdin)
+        for pod in data.get('items', []):
+            if pod.get('status', {}).get('podIP') == '{{ target_ip }}':
+                print(pod['metadata']['name'])
+        "
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      register: matching_pod
+      changed_when: false
+      failed_when: false
+
+    - name: Remove quarantine label from matching pod, if one was found
+      command: >
+        kubectl label pod {{ matching_pod.stdout_lines[0] }} -n {{ zta_namespace }}
+        {{ quarantine_label }}-
+        {{ '--context=' + kube_context if kube_context | length > 0 else '' }}
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      when: matching_pod.stdout_lines is defined and matching_pod.stdout_lines | length > 0
+      register: unlabel_result
+
+    - name: Append release action to audit log (same log block_ip_cilium.yml writes to)
+      lineinfile:
+        path: "{{ zta_response_log | default(lookup('env', 'HOME') + '/oral_arch/zta-response-actions.log') }}"
+        create: yes
+        line: >-
+          {{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}
+          action=release_ip target_ip={{ target_ip }} namespace={{ zta_namespace }}
+          operator={{ operator }} reason={{ reason | default('unspecified') }}
+          pod_unlabeled={{ 'true' if (matching_pod.stdout_lines is defined and matching_pod.stdout_lines | length > 0) else 'false' }}
+      when: existing_policy.rc == 0
+
+    - name: Summary
+      debug:
+        msg: >-
+          Released {{ target_ip }} in namespace {{ zta_namespace }}, authorized by {{ operator }}.
+          Policy removed: {{ 'yes' if existing_policy.rc == 0 else 'no (none existed)' }}.
