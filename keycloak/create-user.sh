@@ -1,7 +1,7 @@
 #!/bin/bash
 source ../.env
 
-TOKEN=$(curl -s -X POST http://127.0.0.1:8080/realms/master/protocol/openid-connect/token \
+TOKEN=$(curl -s -X POST ${KEYCLOAK_URL}/realms/master/protocol/openid-connect/token \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -d "username=${KEYCLOAK_ADMIN}" \
   -d "password=${KEYCLOAK_ADMIN_PASSWORD}" \
@@ -11,7 +11,7 @@ TOKEN=$(curl -s -X POST http://127.0.0.1:8080/realms/master/protocol/openid-conn
 echo 'Got token: '${TOKEN:0:30}'...'
 
 # Create alice
-curl -s -X POST http://127.0.0.1:8080/admin/realms/zta/users \
+curl -s -X POST ${KEYCLOAK_URL}/admin/realms/zta/users \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{
@@ -24,7 +24,7 @@ curl -s -X POST http://127.0.0.1:8080/admin/realms/zta/users \
   }'
 
 # Create bob
-curl -s -X POST http://127.0.0.1:8080/admin/realms/zta/users \
+curl -s -X POST ${KEYCLOAK_URL}/admin/realms/zta/users \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{

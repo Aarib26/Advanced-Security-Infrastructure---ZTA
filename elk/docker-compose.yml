@@ -21,7 +21,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -u elastic:${ELASTIC_PASSWORD} -s http://127.0.0.1:9200/_cluster/health | grep -E '\"status\":\"(green|yellow)\"'"]
       interval: 20s
-      timeout: 10s
+      timeout: 30s
       retries: 10
 
   kibana:
@@ -66,10 +66,10 @@ services:
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9600"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+      interval: 60s
+      timeout: 30s
+      retries: 10
+      start_period: 180s
 volumes:
   es_data:
 

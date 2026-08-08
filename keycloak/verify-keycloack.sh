@@ -1,1 +1,3 @@
-curl -s http://127.0.0.1:8080/realms/zta/.well-known/openid-configuration | python3 -m json.tool
+#!/bin/bash
+source ../.env
+curl -s ${KEYCLOAK_URL}/realms/zta/.well-known/openid-configuration | python3 -m json.tool

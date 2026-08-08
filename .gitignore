@@ -30,3 +30,4 @@ elk/logstash/pipeline_backups/
 lost+found/
 keycloak/create-groups.sh
 keycloak/create-user.sh
+zta_full_snapshot_*.txt

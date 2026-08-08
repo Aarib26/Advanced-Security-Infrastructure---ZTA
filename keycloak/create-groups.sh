@@ -1,7 +1,7 @@
 #!/bin/bash
 source ../.env
 
-TOKEN=$(curl -s -X POST http://127.0.0.1:8080/realms/master/protocol/openid-connect/token \
+TOKEN=$(curl -s -X POST ${KEYCLOAK_URL}/realms/master/protocol/openid-connect/token \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -d "username=${KEYCLOAK_ADMIN}" \
   -d "password=${KEYCLOAK_ADMIN_PASSWORD}" \
@@ -10,20 +10,20 @@ TOKEN=$(curl -s -X POST http://127.0.0.1:8080/realms/master/protocol/openid-conn
 
 echo "Token starts with: ${TOKEN:0:20}"
 
-curl -s -X POST http://127.0.0.1:8080/admin/realms/zta/groups \
+curl -s -X POST ${KEYCLOAK_URL}/admin/realms/zta/groups \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"name":"engineers"}'
 
-curl -s -X POST http://127.0.0.1:8080/admin/realms/zta/groups \
+curl -s -X POST ${KEYCLOAK_URL}/admin/realms/zta/groups \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"name":"admins"}'
 
-ALICE_ID=$(curl -s "http://127.0.0.1:8080/admin/realms/zta/users?username=alice" \
+ALICE_ID=$(curl -s "${KEYCLOAK_URL}/admin/realms/zta/users?username=alice" \
   -H "Authorization: Bearer $TOKEN" | jq -r '.[0].id')
 
-BOB_ID=$(curl -s "http://127.0.0.1:8080/admin/realms/zta/users?username=bob" \
+BOB_ID=$(curl -s "${KEYCLOAK_URL}/admin/realms/zta/users?username=bob" \
   -H "Authorization: Bearer $TOKEN" | jq -r '.[0].id')
 
 echo "Alice ID: $ALICE_ID"
