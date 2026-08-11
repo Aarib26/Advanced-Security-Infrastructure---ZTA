@@ -1,0 +1,10 @@
+[Unit]
+Description=ZTA NAC posture re-verification (one-shot, triggered by timer)
+After=network.target freeradius.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/home/aak/oral_arch/nac/quarantine/quarantine.env
+ExecStart=/home/aak/oral_arch/nac/quarantine/reverify_posture.sh
+User=aak
+

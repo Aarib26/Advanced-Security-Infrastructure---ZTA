@@ -44,8 +44,16 @@ step "Keycloak up"
 step "Pomerium up"
 (cd ~/oral_arch/pomerium && docker compose --env-file ../.env up -d) || fail_soft "pomerium compose up failed"
 
+step "NAC Quarantine Network"
+sudo ~/oral_arch/nac/quarantine/setup_quarantine_net.sh || fail_soft "Quarantine net setup failed"
+
+step "FreeRADIUS & Posture Timer"
+sudo systemctl restart freeradius || fail_soft "FreeRADIUS restart failed"
+sudo systemctl restart zta-posture-reverify.timer || fail_soft "Posture reverify timer restart failed"
+
 step "ELK up"
 (cd ~/oral_arch/elk && docker compose --env-file ../.env up -d) || fail_soft "elk compose up failed"
+
 step "Waiting for Elasticsearch to accept connections"
 ES_READY=0
 for i in $(seq 1 60); do
@@ -61,43 +69,34 @@ else
     fail_soft "Elasticsearch did not respond after 300s"
 fi
 
-step "Zeek interfaces re-resolved"
-(cd ~/oral_arch/zeek && timeout 300 sudo bash fix-zeek-interfaces.sh) || fail_soft "fix-zeek-interfaces.sh timed out or failed"
-
-step "Restarting Suricata (background — this is the slow one, up to ~30min)"
-sudo systemctl restart suricata &
-SURICATA_RESTART_PID=$!
+step "Waiting for Kibana to finish boot and migrations"
+KIBANA_READY=0
+for i in $(seq 1 60); do
+    if curl -s -I http://localhost:5601/api/status | grep -q "HTTP/1.1 200 OK"; then
+        KIBANA_READY=1
+        break
+    fi
+    sleep 5
+done
+if [ "$KIBANA_READY" -eq 1 ]; then
+    echo "Kibana is up and ready after $((i*5))s"
+else
+    fail_soft "Kibana did not respond with 200 OK after 300s"
+fi
 
 step "Restarting Filebeat"
 sudo systemctl restart filebeat || fail_soft "filebeat restart failed"
 
-step "Restarting ML detector + threat hunter"
-sudo systemctl restart zeek_anomaly_detector.service zta-threat-hunter.service || fail_soft "ML service restart failed"
-
-step "Waiting for Suricata to reach active(running) (up to 30 min)"
-wait "$SURICATA_RESTART_PID" 2>/dev/null
-SURICATA_READY=0
-for i in $(seq 1 180); do
-    STATE=$(sudo systemctl is-active suricata 2>/dev/null || echo "unknown")
-    if [ "$STATE" = "active" ]; then
-        SURICATA_READY=1
-        break
-    fi
-    sleep 10
-done
-if [ "$SURICATA_READY" -eq 1 ]; then
-    echo "Suricata active after ~$((i*10))s"
-else
-    fail_soft "Suricata still not active after 30min — check: sudo journalctl -u suricata -n 50"
-fi
+step "Restarting threat hunter"
+sudo systemctl restart zta-threat-hunter.service || fail_soft "ML service restart failed"
 
 TOTAL=$(( $(date +%s) - STEP_START ))
 echo ""
 echo "=================== FINAL STATUS (total: ${TOTAL}s) ==================="
-sudo /opt/zeek/bin/zeekctl status
-echo "---"
-sudo systemctl status zeek-frontend zeek-database zeek-attacker suricata filebeat \
-    zeek_anomaly_detector.service zta-threat-hunter.service --no-pager | grep -E "●|Active"
+sudo systemctl status filebeat \
+    zta-threat-hunter.service \
+    freeradius.service \
+    zta-posture-reverify.timer --no-pager | grep -E "●|Active"
 echo "---"
 docker compose -f ~/oral_arch/elk/docker-compose.yml ps
 echo "---"

@@ -8,10 +8,11 @@ services:
       - cluster.name=zta-elk
       - discovery.type=single-node
      # - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTICSEARCH_REQUESTTIMEOUT=120000
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=false
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
     ports:
       - "127.0.0.1:9200:9200"
     volumes:
@@ -35,6 +36,7 @@ services:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+      - ELASTICSEARCH_REQUESTTIMEOUT=120000
       - xpack.security.enabled=true
       - xpack.monitoring.enabled=false
     ports:
@@ -53,6 +55,7 @@ services:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - ELASTICSEARCH_USERNAME=elastic
       - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTICSEARCH_REQUESTTIMEOUT=120000
     ports:
       - "5044:5044"
     volumes:

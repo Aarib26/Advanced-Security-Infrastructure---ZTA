@@ -1,0 +1,14 @@
+[Unit]
+Description=Run ZTA NAC posture re-verification periodically
+
+[Timer]
+# Interval read from quarantine.env at deploy/render time (see
+# render_reverify_timer.sh) rather than hardcoded here, so it's a single
+# knob to turn without hand-editing systemd units on each host.
+OnBootSec=2min
+OnUnitActiveSec=%%REVERIFY_INTERVAL%%
+Unit=zta-posture-reverify.service
+
+[Install]
+WantedBy=timers.target
+

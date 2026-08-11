@@ -1,0 +1,13 @@
+rest keycloak_nac {
+    tls {
+        ca_file = ${env[KEYCLOAK_CA_FILE]}
+    }
+    connect_uri = "${env[KEYCLOAK_URL]}"
+    authenticate {
+        uri = "${env[KEYCLOAK_URL]}/realms/${env[KEYCLOAK_REALM]}/protocol/openid-connect/token"
+        method = 'post'
+        body = 'post'
+        data = 'grant_type=password&client_id=freeradius-nac&client_secret=${env[KEYCLOAK_NAC_CLIENT_SECRET]}&username=%{User-Name}&password=%{User-Password}'
+        tls = ${modules.rest.keycloak_nac.tls}
+    }
+}
