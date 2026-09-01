@@ -12,7 +12,7 @@ services:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=false
-      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+      - ES_JAVA_OPTS=-Xms4g -Xmx4g
     ports:
       - "127.0.0.1:9200:9200"
     volumes:
@@ -30,6 +30,7 @@ services:
     container_name: kibana
     environment:
       - SERVER_HOST=0.0.0.0
+      - NODE_OPTIONS=--max-old-space-size=4096
       - SERVER_BASEPATH=/kibana
       - SERVER_REWRITEBASEPATH=true
       - SERVER_PUBLICBASEURL=https://${DOMAIN_NAME}/kibana
@@ -54,6 +55,7 @@ services:
       - xpack.monitoring.enabled=false
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - ELASTICSEARCH_USERNAME=elastic
+      - LS_JAVA_OPTS=-Xms2g -Xmx2g
       - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
       - ELASTICSEARCH_REQUESTTIMEOUT=120000
     ports:

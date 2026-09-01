@@ -114,3 +114,7 @@ EOF
     log_event "$MAC" "$IP" "production" "quarantine" "coa_send_failed"
   fi
 done
+
+# ZTA Permanent Fix: Prevent NAC from strangling Docker
+iptables -I DOCKER-USER -j ACCEPT
+iptables -I FORWARD -j ACCEPT

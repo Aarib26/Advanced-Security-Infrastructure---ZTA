@@ -87,3 +87,7 @@ NFT
 
 echo "Quarantine bridge/netns/nftables live. Subnet: ${Q_BASE}.0/24 on $Q_BRIDGE"
 echo "Verify: ip netns exec $Q_NS ping -c1 ${Q_BASE}.1"
+
+# ZTA Permanent Fix: Prevent NAC from strangling Docker
+iptables -I DOCKER-USER -j ACCEPT
+iptables -I FORWARD -j ACCEPT

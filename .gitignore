@@ -31,3 +31,11 @@ lost+found/
 keycloak/create-groups.sh
 keycloak/create-user.sh
 zta_full_snapshot_*.txt
+no_zeek_startup.sh
+patch_freeradius.sh
+afk_startup.sh
+elkfix_startup.sh
+startup.sh
+updated_startup.sh
+v2_pers_start.sh
+pers_start.sh
