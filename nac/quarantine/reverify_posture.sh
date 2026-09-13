@@ -26,12 +26,12 @@
 # nothing to re-probe for a device that was never SSH-trusted.
 set -euo pipefail
 
-QENV="/home/aak/oral_arch/nac/quarantine/quarantine.env"
+QENV="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/quarantine.env"
 source "$QENV"
 
 NAC_LOG="${ZTA_NAC_LOG:-/var/log/zta-nac.log}"
 REVERIFY_LOG="/var/log/zta-quarantine-reverify.log"
-DEVICE_ONBOARD="/home/aak/oral_arch/nac/device_onboard.py"
+DEVICE_ONBOARD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../device_onboard.py"
 
 RADIUS_HOST="${RADIUS_HOST:-localhost}"
 RADIUS_COA_PORT="${RADIUS_COA_PORT:-3799}"
@@ -115,6 +115,3 @@ EOF
   fi
 done
 
-# ZTA Permanent Fix: Prevent NAC from strangling Docker
-iptables -I DOCKER-USER -j ACCEPT
-iptables -I FORWARD -j ACCEPT

@@ -1,13 +1,4 @@
-# Auto-rendered by render_keycloak_module.sh — do not hand-edit.
-rest keycloak_nac {
-    connect_uri = "http://127.0.0.1:8081"
-    connect_timeout = 45
-
-    authenticate {
-        uri = "http://127.0.0.1:8081/realms/zta/protocol/openid-connect/token"
-        method = 'post'
-        body = 'post'
-        data = 'grant_type=password&client_id=freeradius-nac&client_secret=SATS8F89uZpITNW22sRPuKVnzL14xFE9&username=%{User-Name}&password=%{User-Password}'
-        timeout = 45
-    }
-}
+# DO NOT EDIT — generated at deploy time by render_keycloak_module.sh
+# Run: bash ~/oral_arch/nac/keycloak-federation/render_keycloak_module.sh
+# Requires in .env: KEYCLOAK_NAC_CLIENT_SECRET, KEYCLOAK_URL, KEYCLOAK_REALM
+# Real rendered file lives at: /etc/freeradius/3.0/mods-available/keycloak-nac

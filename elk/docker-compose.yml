@@ -69,12 +69,6 @@ services:
       - elasticsearch
         #condition: service_healthy
 
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9600"]
-      interval: 60s
-      timeout: 30s
-      retries: 10
-      start_period: 180s
 volumes:
   es_data:
 

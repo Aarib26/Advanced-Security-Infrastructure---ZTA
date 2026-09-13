@@ -4,7 +4,7 @@
 # auto-detects primary interface and picks an unused /24 for quarantine.
 set -euo pipefail
 
-QDIR="/home/aak/oral_arch/nac/quarantine"
+QDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mkdir -p "$QDIR"
 
 # Auto-detect primary interface (the one with the default route) instead of hardcoding
@@ -76,18 +76,21 @@ nft delete table inet zta_quarantine 2>/dev/null || true
 nft -f - <<NFT
 table inet zta_quarantine {
   chain quarantine_out {
-    type filter hook forward priority 0; policy drop;
-    iifname "$Q_BRIDGE" udp dport 53 accept
-    iifname "$Q_BRIDGE" udp dport 67 accept
-    iifname "$Q_BRIDGE" tcp dport { 1812, 1813, 8081 } accept
-    iifname "$Q_BRIDGE" ct state established,related accept
+    type filter hook forward priority 0; policy accept;
+    iifname != "\$Q_BRIDGE" accept
+    udp dport 53 accept
+    udp dport 67 accept
+    tcp dport { 1812, 1813, 8081 } accept
+    ct state established,related accept
+    drop
   }
 }
 NFT
 
 echo "Quarantine bridge/netns/nftables live. Subnet: ${Q_BASE}.0/24 on $Q_BRIDGE"
 echo "Verify: ip netns exec $Q_NS ping -c1 ${Q_BASE}.1"
-
-# ZTA Permanent Fix: Prevent NAC from strangling Docker
-iptables -I DOCKER-USER -j ACCEPT
-iptables -I FORWARD -j ACCEPT
+# Preserve Docker inter-container networking — idempotent
+iptables -C FORWARD -i br+ -o br+ -j ACCEPT 2>/dev/null || \
+  iptables -I FORWARD -i br+ -o br+ -j ACCEPT
+iptables -C FORWARD -i docker0 -o docker0 -j ACCEPT 2>/dev/null || \
+  iptables -I FORWARD -i docker0 -o docker0 -j ACCEPT

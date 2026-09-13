@@ -1,0 +1,18 @@
+[Unit]
+Description=ZTA Automated Threat Hunter - ELK hunts + Cilium isolation response
+After=network.target zeek_anomaly_detector.service
+Wants=zeek_anomaly_detector.service
+
+[Service]
+Type=simple
+User=aak
+Group=aak
+WorkingDirectory=%h/oral_arch/python-scripts
+ExecStart=%h/oral_arch/python-scripts/ztaenv/bin/python3 %h/oral_arch/python-scripts/threat_hunter.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:%h/oral_arch/python-scripts/threat_hunter.log
+StandardError=append:%h/oral_arch/python-scripts/threat_hunter.log
+
+[Install]
+WantedBy=multi-user.target

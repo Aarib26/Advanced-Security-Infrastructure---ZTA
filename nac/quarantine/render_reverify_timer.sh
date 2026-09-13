@@ -10,14 +10,14 @@
 # the rendered .timer file directly (it will be overwritten).
 set -euo pipefail
 
-QENV="/home/aak/oral_arch/nac/quarantine/quarantine.env"
+QENV="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/quarantine.env"
 source "$QENV"
 
 INTERVAL="${REVERIFY_INTERVAL:-5min}"   # sensible default if not set in env
 
-TIMER_SRC="/home/aak/oral_arch/nac/quarantine/systemd/zta-posture-reverify.timer.template"
+TIMER_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/systemd/zta-posture-reverify.timer.template"
 TIMER_DST="/etc/systemd/system/zta-posture-reverify.timer"
-SERVICE_SRC="/home/aak/oral_arch/nac/quarantine/systemd/zta-posture-reverify.service"
+SERVICE_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/systemd/zta-posture-reverify.service"
 SERVICE_DST="/etc/systemd/system/zta-posture-reverify.service"
 
 sed "s/%%REVERIFY_INTERVAL%%/${INTERVAL}/" "$TIMER_SRC" | sudo tee "$TIMER_DST" > /dev/null

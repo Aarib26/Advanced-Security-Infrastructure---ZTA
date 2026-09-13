@@ -6,7 +6,7 @@ set -euo pipefail
 
 MAC="${1:-unknown}"
 TARGET_VLAN="${2:-unknown}"
-QENV="/home/aak/oral_arch/nac/quarantine/quarantine.env"
+QENV="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/quarantine.env"
 LOG="/var/log/zta-quarantine-release.log"
 
 [ -f "$QENV" ] && source "$QENV"

@@ -15,7 +15,7 @@
 # the real field values device_onboard.py emits.
 set -euo pipefail
 
-QENV="/home/aak/oral_arch/nac/quarantine/quarantine.env"
+QENV="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/quarantine.env"
 source "$QENV"
 
 NAC_LOG="/var/log/zta-nac.log"

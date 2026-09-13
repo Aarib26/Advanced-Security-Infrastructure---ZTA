@@ -1,0 +1,13 @@
+[Unit]
+Description=Zeek monitoring - attacker pod interface
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/zeek/logs/attacker
+Type=simple
+ExecStart=/opt/zeek/bin/zeek -i lxcf78ada9abf9f local
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
