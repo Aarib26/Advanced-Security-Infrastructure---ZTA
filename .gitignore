@@ -39,3 +39,4 @@ startup.sh
 updated_startup.sh
 v2_pers_start.sh
 pers_start.sh
+# encrypted secrets — safe to commit
