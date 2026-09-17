@@ -220,3 +220,38 @@ echo "  radtest alice Alice123! localhost 0 testing123"
 echo "  curl -su elastic:\${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health | python3 -m json.tool"
 echo "  kubectl get pods -A"
 echo "============================================================"
+
+# ── 13. KEYCLOAK REALM RESTORE ────────────────────────────────────────────────
+step "Keycloak realm restore"
+REALM_EXPORT="$SCRIPT_DIR/keycloak/zta-realm-export.json"
+
+if [[ -f "$REALM_EXPORT" ]]; then
+  # Wait for Keycloak admin API to be ready (up to 200s)
+  echo "  Waiting for Keycloak..."
+  for i in $(seq 1 20); do
+    curl -sf "http://127.0.0.1:8081/realms/master" >/dev/null 2>&1 && break || sleep 10
+  done
+
+  TOKEN=$(curl -s -X POST "http://127.0.0.1:8081/realms/master/protocol/openid-connect/token" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "username=${KC_BOOTSTRAP_ADMIN_USERNAME}&password=${KC_BOOTSTRAP_ADMIN_PASSWORD}&grant_type=password&client_id=admin-cli" \
+    | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))")
+
+  # Check if zta realm already exists (idempotent)
+  EXISTING=$(curl -s "http://127.0.0.1:8081/admin/realms/zta" \
+    -H "Authorization: Bearer $TOKEN" \
+    | python3 -c "import sys,json; print(json.load(sys.stdin).get('realm',''))" 2>/dev/null || echo "")
+
+  if [[ -z "$EXISTING" ]]; then
+    curl -s -X POST "http://127.0.0.1:8081/admin/realms" \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "Content-Type: application/json" \
+      -d @"$REALM_EXPORT" >/dev/null
+    ok "ZTA realm imported from export"
+  else
+    ok "ZTA realm already exists — skipping import"
+  fi
+else
+  warn "No keycloak/zta-realm-export.json found — realm must be created manually"
+  warn "Run backup.sh on a working instance first, then commit the export"
+fi

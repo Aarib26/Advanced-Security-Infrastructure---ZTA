@@ -1,0 +1,32 @@
+[
+    {
+        "id": "177f24a7-0cda-4acb-8994-2efe0ee97b54",
+        "name": "admins",
+        "description": "",
+        "path": "/admins",
+        "subGroupCount": 0,
+        "subGroups": [],
+        "access": {
+            "view": true,
+            "viewMembers": true,
+            "manageMembers": true,
+            "manage": true,
+            "manageMembership": true
+        }
+    },
+    {
+        "id": "6c9ad5ac-2640-4e0d-9a4e-6b4868a778b1",
+        "name": "engineers",
+        "description": "",
+        "path": "/engineers",
+        "subGroupCount": 0,
+        "subGroups": [],
+        "access": {
+            "view": true,
+            "viewMembers": true,
+            "manageMembers": true,
+            "manage": true,
+            "manageMembership": true
+        }
+    }
+]
