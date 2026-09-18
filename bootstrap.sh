@@ -45,7 +45,7 @@ if ! $SKIP_PACKAGES; then
   run "apt-get update -qq"
   run "apt-get install -y --no-install-recommends \
     curl wget git jq python3 python3-pip python3-venv \
-    suricata freeradius freeradius-rest \
+    suricata freeradius freeradius-rest caddy \
     docker.io docker-compose-plugin \
     nftables iptables net-tools iproute2 age"
   # Filebeat
@@ -184,6 +184,7 @@ ok "Kibana + Logstash up"
 # ── 11. SYSTEMD SERVICES ─────────────────────────────────────────────────────
 step "Start services"
 run "systemctl restart caddy"
+run "ln -sf /etc/freeradius/3.0/mods-available/keycloak-nac /etc/freeradius/3.0/mods-enabled/keycloak-nac"
 run "systemctl restart freeradius"
 run "systemctl restart suricata"
 run "systemctl restart filebeat"

@@ -1,0 +1,18 @@
+[Unit]
+Description=ZTA ML Anomaly Detector - Isolation Forest on Zeek conn.log
+After=network.target
+
+[Service]
+Type=simple
+User=aak
+Group=zeek
+SupplementaryGroups=zeek
+WorkingDirectory=/home/aak/oral_arch/python-scripts
+ExecStart=/home/aak/oral_arch/python-scripts/ztaenv/bin/python3 /home/aak/oral_arch/python-scripts/ml/zeek_anomaly_detector.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/home/aak/oral_arch/python-scripts/ml/zeek_anomaly_detector.log
+StandardError=append:/home/aak/oral_arch/python-scripts/ml/zeek_anomaly_detector.log
+
+[Install]
+WantedBy=multi-user.target
