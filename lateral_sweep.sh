@@ -42,7 +42,7 @@ NAMESPACE="${NAMESPACE:-zta-demo}"
 LOOKBACK_MINUTES="${LOOKBACK_MINUTES:-5}"
 SWEEP_INTERVAL="${SWEEP_INTERVAL:-300}"
 ANSIBLE_DIR="${ANSIBLE_DIR:-${SCRIPT_DIR}/ansible}"
-RESPONSE_LOG="${RESPONSE_LOG:-${HOME}/oral_arch/zta-response-actions.log}"
+RESPONSE_LOG="${RESPONSE_LOG:-$(dirname "$(realpath "$0")")/zta-response-actions.log}"
 HUNT_INDEX_PREFIX="zta-hunt"
 
 AUTO_RESPOND=false

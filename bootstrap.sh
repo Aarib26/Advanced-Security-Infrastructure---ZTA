@@ -64,8 +64,8 @@ if ! command -v tailscale &>/dev/null; then
 fi
 TS_IP=$(tailscale ip -4 2>/dev/null || true)
 if [[ -z "$TS_IP" ]]; then
-  [[ -z "${TAILSCALE_AUTH_KEY:-}" ]] && warn "No TAILSCALE_AUTH_KEY — run: sudo tailscale up --hostname=ztauser" \
-    || run "tailscale up --authkey=${TAILSCALE_AUTH_KEY} --hostname=ztauser"
+  [[ -z "${TAILSCALE_AUTH_KEY:-}" ]] && warn "No TAILSCALE_AUTH_KEY — run: sudo tailscale up --hostname=${ZTA_HOSTNAME:-ztauser}" \
+    || run "tailscale up --authkey=${TAILSCALE_AUTH_KEY} --hostname=${ZTA_HOSTNAME:-ztauser}"
 else
   ok "Tailscale: $TS_IP"
 fi
@@ -157,6 +157,7 @@ done
 ok "Keycloak up"
 
 step "Pomerium"
+run "sed -i 's/DOMAIN_NAME_PLACEHOLDER/${DOMAIN_NAME}/g' /etc/pomerium/config.yaml 2>/dev/null || sed -i 's/DOMAIN_NAME_PLACEHOLDER/${DOMAIN_NAME}/g' $SCRIPT_DIR/pomerium/config.yaml"
 run "cd $SCRIPT_DIR/pomerium && docker compose --env-file ../.env up -d"
 ok "Pomerium up"
 
@@ -211,9 +212,9 @@ fi
 TOTAL=$(( $(date +%s) - $(stat -c %Y "$LOG" 2>/dev/null || date +%s) ))
 echo ""
 echo "==================== BOOTSTRAP COMPLETE ===================="
-echo "Kibana:   https://${DOMAIN_NAME:-ztauser.tail65943a.ts.net}/kibana"
-echo "Keycloak: https://${DOMAIN_NAME:-ztauser.tail65943a.ts.net}/admin"
-echo "ZTA App:  https://${DOMAIN_NAME:-ztauser.tail65943a.ts.net}/zta-app"
+echo "Kibana:   https://${DOMAIN_NAME:-${DOMAIN_NAME:-ztauser.tail65943a.ts.net}}/kibana"
+echo "Keycloak: https://${DOMAIN_NAME:-${DOMAIN_NAME:-ztauser.tail65943a.ts.net}}/admin"
+echo "ZTA App:  https://${DOMAIN_NAME:-${DOMAIN_NAME:-ztauser.tail65943a.ts.net}}/zta-app"
 echo "Log:      $LOG"
 echo ""
 echo "Quick validation:"

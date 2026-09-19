@@ -15,7 +15,7 @@ resolve_keycloak_url() {
         local magicdns_suffix
         magicdns_suffix=$(echo "$ts_status" | grep -o '"MagicDNSSuffix":"[^"]*"' | cut -d'"' -f4 || true)
         if [[ -n "$magicdns_suffix" ]]; then
-            local host_hint="${KEYCLOAK_HOST_HINT:-ztauser}"
+            local host_hint="${KEYCLOAK_HOST_HINT:-${ZTA_HOSTNAME:-ztauser}}"
             echo "https://${host_hint}.${magicdns_suffix}:8444"
             return 0
         fi

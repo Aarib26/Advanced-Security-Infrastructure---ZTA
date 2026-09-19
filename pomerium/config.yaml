@@ -3,10 +3,10 @@ log_level: debug
 xff_num_trusted_hops: 1
 
 cookie_same_site: lax
-cookie_domain: ztauser.tail65943a.ts.net
+cookie_domain: DOMAIN_NAME_PLACEHOLDER
 
 idp_provider: oidc
-idp_provider_url: https://ztauser.tail65943a.ts.net/realms/zta
+idp_provider_url: https://DOMAIN_NAME_PLACEHOLDER/realms/zta
 idp_client_id: pomerium
 idp_scopes:
   - openid
@@ -20,14 +20,14 @@ jwt_claims_headers:
   sub: sub
 
 policy:
-  - from: https://ztauser.tail65943a.ts.net
+  - from: https://DOMAIN_NAME_PLACEHOLDER
     to: http://localhost:30080
     prefix: /zta-app
     pass_identity_headers: true
     prefix_rewrite: /
     allow_any_authenticated_user: true
     preserve_host_header: true
-  - from: https://ztauser.tail65943a.ts.net
+  - from: https://DOMAIN_NAME_PLACEHOLDER
     prefix: /zta-admin
     to: http://localhost:8082
     pass_identity_headers: true
