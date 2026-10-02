@@ -39,6 +39,15 @@ ztauser.tail65943a.ts.net {
                         }
                 }
         }
+        handle /cloud-app* {
+                reverse_proxy localhost:8444 {
+                        header_up Host {host}
+                        transport http {
+                                tls_insecure_skip_verify
+                        }
+                }
+        }
+
         handle /zta-admin* {
                 reverse_proxy localhost:8444 {
                         header_up Host {host}
