@@ -1,0 +1,38 @@
+filebeat.inputs:
+  - type: filestream
+    id: cloud-syslog
+    enabled: true
+    paths:
+      - /var/log/syslog
+      - /var/log/auth.log
+    fields:
+      log_type: cloud-host
+      deployment_site: ztacloud
+      arch_role: dr-secondary
+    fields_under_root: false
+
+  - type: filestream
+    id: suricata-eve
+    enabled: true
+    paths:
+      - /var/log/suricata/eve.json
+    fields:
+      log_type: suricata
+      deployment_site: ztacloud
+      arch_role: dr-secondary
+    fields_under_root: false
+    parsers:
+      - ndjson:
+          target: ""
+          overwrite_keys: true
+          expand_keys: true
+
+output.logstash:
+  hosts: ["100.96.17.20:5044"]
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7

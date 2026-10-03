@@ -1,0 +1,14 @@
+[Unit]
+Description=ZTA Cloud Workload (Flask)
+After=network.target
+
+[Service]
+User=ztacloud
+WorkingDirectory=/opt/cloud-app
+Environment="DEPLOYMENT_SITE=ztacloud"
+ExecStart=/opt/cloud-app/venv/bin/python app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

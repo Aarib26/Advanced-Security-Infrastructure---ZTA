@@ -44,3 +44,8 @@ zta-response-actions.log
 python-scripts/ml/*.log
 python-scripts/threat_hunter.log
 startupsequence.sh
+python-scripts/ztaenv/
+*.log
+__pycache__/
+*.pyc
+*.pkl
