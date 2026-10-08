@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "========================================"
+echo "  UFW Enforcement"
+echo "========================================"
+echo ""
+echo "--- Firewall rules on ztacloud ---"
+ssh -i ~/.ssh/zta_gcp ztacloud@100.111.196.121 "sudo ufw status verbose"
+echo ""
+echo "--- Cloud app reachable via Tailscale ---"
+curl -s -m 5 http://100.111.196.121:8080 | grep -o "Zero Trust.*"
