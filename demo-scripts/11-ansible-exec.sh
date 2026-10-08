@@ -13,11 +13,11 @@ ls -1 $PLAYBOOK_DIR/
 
 echo ""
 echo "--- LIVE: block_ip_cilium.yml — blocking rogue IP ---"
-ROGUE_IP="10.0.0.200"
-$ANSIBLE $PLAYBOOK_DIR/block_ip_cilium.yml \
+ROGUE_IP="10.0.0.$(shuf -i 210-250 -n1)"
+$ANSIBLE -i $PLAYBOOK_DIR/inventory.ini \
+  $PLAYBOOK_DIR/block_ip_cilium.yml \
   -e "target_ip=$ROGUE_IP" \
   --connection=local 2>&1 | tail -20
-
 echo ""
 echo "--- Verify: Cilium block policy created ---"
 kubectl get ciliumnetworkpolicy -A | grep "zta-block"
@@ -27,8 +27,9 @@ echo "--- Response log entry written ---"
 tail -3 ~/oral_arch/zta-response-actions.log
 
 echo ""
+export KEYCLOAK_ADMIN_PASSWORD=ZtaAdmin2026Secure
 echo "--- LIVE: revoke_keycloak_session.yml ---"
-$ANSIBLE $PLAYBOOK_DIR/revoke_keycloak_session.yml \
+$ANSIBLE -i $PLAYBOOK_DIR/inventory.ini $PLAYBOOK_DIR/revoke_keycloak_session.yml -e "target_user=alice" \
   --connection=local 2>&1 | tail -15
 
 echo ""

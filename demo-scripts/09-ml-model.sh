@@ -10,25 +10,19 @@ echo "Model script: ${ML_SVC:-~/oral_arch/python-scripts/ml_anomaly_detector.py}
 sudo systemctl status zeek_anomaly_detector --no-pager | head -8
 
 echo ""
+echo ""
 echo "--- ML model details ---"
 python3 - <<'EOF'
-import os, json
-
-# Look for model file
-import glob
-model_files = glob.glob(os.path.expanduser("~/oral_arch/**/*.pkl"), recursive=True) + \
-              glob.glob(os.path.expanduser("~/oral_arch/**/*.joblib"), recursive=True) + \
-              glob.glob(os.path.expanduser("~/zta*/**/*.pkl"), recursive=True)
-
+import os, glob
+model_files = glob.glob(os.path.expanduser("~/oral_arch/python-scripts/ml/*.pkl"))
 if model_files:
     for f in model_files:
-        size = os.path.getsize(f)
-        print(f"  Model file: {f} ({size} bytes)")
+        print(f"  Model file : {f} ({os.path.getsize(f)} bytes)")
+        print(f"  Algorithm  : Isolation Forest (sklearn)")
+        print(f"  Features   : bytes_per_second, packet_rate, unique_dsts, port_entropy, proto")
+        print(f"  Threshold  : contamination=0.05 (5% anomaly rate)")
 else:
-    print("  Model: Isolation Forest (sklearn) — trained on ZTA baseline traffic")
-    print("  Features: bytes_per_second, packet_rate, unique_dsts, port_entropy, proto")
-    print("  Contamination: 0.05 (5% anomaly threshold)")
-    print("  Training window: rolling 24h baseline")
+    print("  No model file found")
 EOF
 
 echo ""
@@ -44,6 +38,9 @@ curl -su elastic:ztaelk26 "http://localhost:9200/zta-ml-anomalies-*/_search" \
   | python3 -c "
 import sys,json
 d=json.load(sys.stdin)
+if 'hits' not in d:
+    print('  Query error:', d.get('error',d))
+    sys.exit(0)
 for h in d['hits']['hits']:
     s=h['_source']
     ts=s.get('@timestamp','?')[:19]
